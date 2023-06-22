@@ -104,8 +104,8 @@ app.delete("/todos/:id", (req, res) => {
   }
 });
 
-app.get("*", (req, res) => {
-  res.status(404).send("Route not defined");
+app.get((req, res, next) => {
+  res.status(404).send();
 });
 
 module.exports = app;
