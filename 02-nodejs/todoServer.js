@@ -39,11 +39,77 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const app = express();
 
 app.use(bodyParser.json());
 
+let data = JSON.parse(fs.readFileSync("todo.json", "utf8"));
+let todoObj = data["todoObj"];
+let uuid = Number(data["id"]);
+
+app.get("/", (req, res) => {
+  res.send("Hello TODO!!");
+});
+
+app.get("/todos", (req, res) => {
+  res.status(200).send(Object.values(todoObj));
+});
+
+app.put("/todos/:id", (req, res) => {
+  let id = req.params.id;
+  if (todoObj[id]) {
+    todoObj[id] = req.body;
+    newData = { id: uuid, todoObj: todoObj };
+    fs.writeFileSync("todo.json", JSON.stringify(newData), "utf-8");
+
+    res.status(200).json({ Status: "Updated", id: uuid });
+  } else {
+    res.status(404).json({ Status: "Not Found", id: uuid });
+  }
+});
+
+app.get("/todos/:id", (req, res) => {
+  let id = req.params.id;
+  if (todoObj[id]) {
+    res.status(200).json(todoObj[id]);
+  } else {
+    res.status(404).json({ Status: "Not Found", id: id });
+  }
+});
+
+app.post("/todos", (req, res) => {
+  uuid++;
+  todoObj[uuid] = req.body;
+
+  newData = { id: uuid, todoObj: todoObj };
+  fs.writeFileSync("todo.json", JSON.stringify(newData), "utf-8");
+
+  res.status(201).json({ id: uuid });
+});
+
+app.delete("/todos/:id", (req, res) => {
+  let id = req.params.id;
+  if (todoObj[id]) {
+    delete todoObj[id];
+    newData = { id: uuid, todoObj: todoObj };
+    fs.writeFileSync("todo.json", JSON.stringify(newData), "utf-8");
+
+    res.status(200).json({ Status: "Deleted", id: uuid });
+  } else {
+    res.status(404).json({ Status: "Not Found", id: uuid });
+  }
+});
+
+app.get("*", (req, res) => {
+  res.status(404).send("Route not defined");
+});
+
 module.exports = app;
+
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});
