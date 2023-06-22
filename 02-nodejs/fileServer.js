@@ -27,9 +27,9 @@ app.get("/", (req, res) => {
   res.send("Hello File Server!!!");
 });
 
-app.get("/file", (req, res) => {
+app.get("/files", (req, res) => {
   fileNames = [];
-  fs.readdirSync("./files/").forEach((file) => {
+  fs.readdirSync(path.join(__dirname, "./files/")).forEach((file) => {
     fileNames.push(file);
   });
   res.status(200).json(fileNames);
