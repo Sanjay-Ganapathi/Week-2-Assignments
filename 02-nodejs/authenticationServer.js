@@ -29,9 +29,78 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require("body-parser");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 module.exports = app;
+let userDatastore = [];
+
+app.use(bodyParser.json());
+app.get("/", (req, res) => {
+  res.send("Hello Authentication Server");
+});
+
+app.post("/signup", (req, res) => {
+  user = req.body;
+  const userExists = userDatastore.some((userData) => {
+    return userData.username === user.username;
+  });
+
+  if (userExists) {
+    res.status(400).json({ message: "Username already exists" });
+  } else {
+    const uuid = Math.random().toString(36).substring(2);
+    userDatastore.push({ ...user, id: uuid });
+    res.status(201).send("Signup successful");
+    console.log(userDatastore);
+  }
+});
+
+app.post("/login", (req, res) => {
+  user = req.body;
+  const userExists = userDatastore.some((userData) => {
+    return userData.email === user.email && userData.password === user.password;
+  });
+  if (userExists) {
+    const token =
+      Math.random().toString(36).substring(2) +
+      Math.random().toString(36).substring(2);
+    return res.status(200).json({ token: token });
+  } else return res.status(401).json({ message: "Invalid Credentials" });
+});
+
+app.get("/data", (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+
+  const userExists = userDatastore.some((userData) => {
+    return userData.email === email && userData.password === password;
+  });
+
+  if (userExists) {
+    usersToSend = [];
+    userDatastore.forEach((userData) => {
+      usersToSend.push({
+        id: userData.id,
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+      });
+    });
+
+    return res.status(200).send(usersToSend);
+  } else {
+    return res.status(401).send("Unauthorized");
+  }
+});
+
+app.use("*", (req, res) => {
+  res.status(404).json({ message: "Route Not Found" });
+});
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
