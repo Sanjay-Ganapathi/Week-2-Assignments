@@ -42,10 +42,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
+const cors = require("cors");
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
 
 let data = JSON.parse(fs.readFileSync("todo.json", "utf8"));
 let todoObj = data["todoObj"];
@@ -56,7 +58,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/todos", (req, res) => {
-  res.status(200).send(Object.values(todoObj));
+  res.status(200).send(todoObj);
 });
 
 app.put("/todos/:id", (req, res) => {
@@ -83,6 +85,7 @@ app.get("/todos/:id", (req, res) => {
 
 app.post("/todos", (req, res) => {
   uuid++;
+  console.log(req.body);
   todoObj[uuid] = req.body;
 
   newData = { id: uuid, todoObj: todoObj };
@@ -92,6 +95,7 @@ app.post("/todos", (req, res) => {
 });
 
 app.delete("/todos/:id", (req, res) => {
+  console.log("In Delete");
   let id = req.params.id;
   if (todoObj[id]) {
     delete todoObj[id];
